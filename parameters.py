@@ -65,14 +65,14 @@ class Parameters:
         ##############
         # Map Note names to Midi pitch number starting at C0 = 12
         self.note_names = note_names
-        self.pitch2note = midi2note
-        self.note2pitch = note2midi
+        self.pitch2note_map = midi2note
+        self.note2pitch_map = note2midi
 
         # Map vertical interval names (the interval between the cantus firmus and the counterpoint at time t)
         # Goes from root (P1) to Major 10th (M10)
         self.interval_names = interval_names
-        self.interval2num = interval2num
-        self.num2interval = num2interval
+        self.interval2num_map = interval2num
+        self.num2interval_map = num2interval
         # Probabilities of vertical intervals
         self.harmonic_table = harmonic_table
 
@@ -80,7 +80,33 @@ class Parameters:
         # Limited to specific intervals up or down, e.g. minor 2nd up (m2u) or Perfect 5th down (P5d)
         self.melodic_interval_names = melodic_interval_names
         self.melodic_interval_inds = melodic_interval_inds  # used to index the melodic table
-        self.melodic_interval2num = melodic_interval2num
-        self.melodic_num2interval = melodic_num2interval
+        self.melodic_interval2num_map = melodic_interval2num
+        self.melodic_num2interval_map = melodic_num2interval
         # Conditional probabilities of melody moving from state t-1 to state t
         self.melodic_table = melodic_table
+
+    # Helper functions
+    def note2pitch(self, note: str) -> int:
+        return self.note2pitch_map[note]
+
+    def pitch2note(self, pitch: int) -> str:
+        return self.pitch2note_map[pitch]
+
+    def interval2num(self, interval: str) -> int:
+        return self.interval2num_map[interval]
+
+    def num2interval(self, num: int) -> str:
+        return self.num2interval_map[num]
+
+    def melodic_interval2num(self, interval: str) -> int:
+        return self.melodic_interval2num_map[interval]
+
+    def melodic_num2interval(self, num: int) -> str:
+        return self.melodic_num2interval_map[num]
+
+    def get_melodic_score(self, last_interval: str, current_interval: str) -> float:
+        index = self.melodic_interval_inds[current_interval]
+        return self.melodic_table[last_interval][index]
+
+    def is_valid_melodic_interval(self, interval: int) -> bool:
+        return interval in self.melodic_num2interval_map
