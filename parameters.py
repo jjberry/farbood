@@ -1,5 +1,20 @@
 import numpy as np
 
+class Note:
+    # Data structure to store note information
+    def __init__(self, pitch: int, harmonic_interval: str, log_prob: float):
+        self.pitch = pitch                          # the midi pitch number
+        self.harmonic_interval = harmonic_interval  # the interval to the cantus note
+        self.score = log_prob                       # this is from the harmonic table
+
+
+class Path:
+    # Data structure to store a path
+    def __init__(self, notes: list, log_prob: float, melody: str):
+        self.path = notes           # the list of Note objects in the path
+        self.score = log_prob       # the score of the path
+        self.last_melody = melody   # the interval between path[-1] and path[-2]
+
 
 class Parameters:
 
@@ -110,3 +125,9 @@ class Parameters:
 
     def is_valid_melodic_interval(self, interval: int) -> bool:
         return interval in self.melodic_num2interval_map
+
+    def get_melodic_interval(self, note: Note, path: Path):
+        num = note.pitch - path.path[-1].pitch
+        return self.melodic_num2interval(num)
+
+
