@@ -35,11 +35,11 @@ def get_paths(cand_note: Note, prev_paths: list, param: Parameters) -> list:
         # Apply rules
         score = np.exp(cand_note.score)
         score *= apply_melodic_table(cand_note, path, param)
-        if score == 0:  # eliminate divide by 0 warnings
-            continue
 
         # TODO: Other rule evaluations go here
 
+        if score == 0:  # eliminate divide by 0 warnings
+            continue
         # Create the new path for the next round
         new_path = path.path.copy()
         new_path.append(cand_note)
@@ -64,21 +64,28 @@ def apply_melodic_table(cand_note: Note, path: Path, param: Parameters) -> float
         return 0.0
 
 
-def generate_cantus(n_steps: int, start_note: str) -> list:
-    # Use the melody_table to draw samples
-    params = Parameters()
-    start_pitch = params.note2pitch(start_note)
-    current_path = Path([start_pitch, np.log(1.0), 'P1'])
+def generate_cantus(n_steps: int, start_note: Note, params: Parameters) -> list:
+    # Use the melody_table to draw samples using np.random.choice()
+    path = Path([start_note], np.log(1.0), 'P1')
+    for step in range(n_steps - 1):
+        draw = np.random.choice(params.melodic_interval_names, p=params.melodic_table[path.last_melody])
+        draw_pitch = params.melodic_interval2num(draw)
+        pitch = path.path[-1].pitch + draw_pitch
+        note = Note(pitch, "", np.log(1.0))
+        new_path = path.path.copy()
+        new_path.append(note)
+        path = Path(new_path, np.log(1.0), draw)
 
-    return current_path.path
+    return path.path
 
 
 if __name__ == "__main__":
     p = Parameters()
-    cf = ['D4', 'F4', 'G4', 'A4', 'G4', 'F4', 'E4', 'D4']
+    start_note = Note(60, "P1", 0.0)
+    cf = generate_cantus(8, start_note, p)
     print("cantus firmus: ")
-    print(cf)
-    cf_pitch = [p.note2pitch(n) for n in cf]
+    print([p.pitch2note(n.pitch) for n in cf])
+    cf_pitch = [n.pitch for n in cf]
     counterpoints = generate_counterpoint(cf_pitch)
     print("generated paths: ")
     for path in counterpoints:
